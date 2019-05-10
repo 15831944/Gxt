@@ -58,8 +58,12 @@ namespace Gxt
             {
                 Polyline polyline = (Polyline)trans.GetObject(per.ObjectId, OpenMode.ForRead);
                 GradeLine grade = new GradeLine(polyline);
+                foreach (ProfileObject po in grade.CrossingObjects())
+                {
+                    ed.WriteMessage(po.DistanceAtCrossing.ToString() + po.Layer, po.LineType);
+                }
             }
-
+            //need to save this infor into xrecords....!!1
             
 
 

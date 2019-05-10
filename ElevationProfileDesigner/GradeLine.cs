@@ -47,6 +47,9 @@ namespace Gxt.ElevationProfileDesigner
                 foreach (SelectedObject selectedObject in promptSelectionResult.Value)
                 {
                     Entity ent = (Entity)trans.GetObject(selectedObject.ObjectId, OpenMode.ForRead);
+
+                    if (ent.ObjectId == Polyline.ObjectId)
+                        continue;
                     
                     //try and if they intersect the results will be on points variable
                     try
