@@ -17,7 +17,8 @@ namespace Gxt.ElevationProfileDesigner
         public Nod()
         {
 
-            //NodDictionary = (DBDictionary)trans.GetObject(Db.NamedObjectsDictionaryId, OpenMode.ForRead);
+            NodDictionary = (DBDictionary)Application.DocumentManager.MdiActiveDocument.Database.TransactionManager.StartTransaction().GetObject(
+                Application.DocumentManager.MdiActiveDocument.Database.NamedObjectsDictionaryId, OpenMode.ForRead);
             
         }
 

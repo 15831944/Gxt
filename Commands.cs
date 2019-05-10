@@ -42,6 +42,30 @@ namespace Gxt
             }
         }
 
+        [CommandMethod("gl")]
+        public void GradeLine()
+        {
+            Editor ed = doc.Editor;
+
+            PromptEntityOptions peo = new PromptEntityOptions("Select Running Line: ");
+
+            PromptEntityResult per = ed.GetEntity(peo);
+            if (per.Status != PromptStatus.OK)
+                return;
+
+            Transaction trans = database.TransactionManager.StartTransaction();
+            using (trans)
+            {
+                Polyline polyline = (Polyline)trans.GetObject(per.ObjectId, OpenMode.ForRead);
+                GradeLine grade = new GradeLine(polyline);
+            }
+
+            
+
+
+
+        }
+
         // Asynchronous helper that checks whether a URL exists
         // (i.e. that the URL is valid and can be loaded)
         private async static Task<bool> PageExists(string url)
