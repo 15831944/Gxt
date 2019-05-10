@@ -13,7 +13,7 @@ namespace Gxt.ElevationProfileDesigner
     public class ProfileGrid
     {
         private int GridLength { get; set; }
-        private int GridOffset { get; set; }
+        private int VerticalScale { get; set; }
         private int HorizontalLineCount { get; set; }
         public DBObjectCollection ProfileGridDBOjbects { get; set; }
         public Point3d InsertionPoint { get; set; }
@@ -23,17 +23,18 @@ namespace Gxt.ElevationProfileDesigner
         //default length of grid 
         public ProfileGrid()
         {
-            GridLength = 250;
-            GridOffset = 5;
+            GridLength = 0;  //+ 30; //add 30 for buffer on the grid side 15 on each side
+            VerticalScale = 0;
+            HorizontalLineCount = 30; //todo
             ProfileGridDBOjbects = new DBObjectCollection();
             Init();
         }
 
-        public ProfileGrid(int l, int offset)
+        public ProfileGrid(int length, int verticalScale)
         {
-            GridLength = l + 30; //add 30 for buffer on the grid side 15 on each side
-            GridOffset = offset;
-            HorizontalLineCount = 30;
+            GridLength = length + 30; //add 30 for buffer on the grid side 15 on each side
+            VerticalScale = verticalScale;
+            HorizontalLineCount = 30; //todo
             ProfileGridDBOjbects = new DBObjectCollection();
             Init();
         }
@@ -53,12 +54,18 @@ namespace Gxt.ElevationProfileDesigner
 
             InsertionPoint = ppr.Value;
 
+            if (this.GridLength == 0)
+            {
+                GridLength = 3000;
+                VerticalScale = 5;
+            }
+
             Point3d endGridPt = new Point3d(InsertionPoint.X + this.GridLength, InsertionPoint.Y, InsertionPoint.Z);
 
             line = new Line(InsertionPoint, endGridPt);
 
             //Horizontal grid lines
-            for (int i = 0; i <= HorizontalLineCount ; i++)
+            for (int i = 0; i <= HorizontalLineCount; i++)
             {
                 if (i == 0)
                     this.ProfileGridDBOjbects.Add(line.GetOffsetCurves(0)[0]);
@@ -66,18 +73,18 @@ namespace Gxt.ElevationProfileDesigner
                 if (i % 5 == 0)
                 {
                     line.Color = Autodesk.AutoCAD.Colors.Color.FromRgb(255, 255, 255);
-                    this.ProfileGridDBOjbects.Add(line.GetOffsetCurves(i * GridOffset)[0]);
+                    this.ProfileGridDBOjbects.Add(line.GetOffsetCurves(i * VerticalScale)[0]);
                 }
                 else
                 {
                     line.Color = Autodesk.AutoCAD.Colors.Color.FromRgb(80, 80, 80);
-                    this.ProfileGridDBOjbects.Add(line.GetOffsetCurves(i * GridOffset)[0]);
+                    this.ProfileGridDBOjbects.Add(line.GetOffsetCurves(i * VerticalScale)[0]);
                 }
             }
 
             //verticle grid lines every 100 feet
             Point3d vpointBottom = new Point3d(InsertionPoint.X + 15, InsertionPoint.Y, InsertionPoint.Z);
-            Line vline = new Line(vpointBottom, new Point3d(vpointBottom.X, vpointBottom.Y + (GridOffset * HorizontalLineCount), vpointBottom.Z));
+            Line vline = new Line(vpointBottom, new Point3d(vpointBottom.X, vpointBottom.Y + (VerticalScale * HorizontalLineCount), vpointBottom.Z));
 
             for (int i = 0; i <= (int)(GridLength / 100); i++)
             {
@@ -86,6 +93,7 @@ namespace Gxt.ElevationProfileDesigner
 
             PlaceGridElevationText();
             PlaceProfileStationText();
+            
         }
 
         private void PlaceProfileStationText()
@@ -94,10 +102,10 @@ namespace Gxt.ElevationProfileDesigner
             {
                 Contents = FormatStation(0),
                 TextHeight = 2.5,
-                Location = new Point3d(InsertionPoint.X + 15, InsertionPoint.Y + (GridOffset * HorizontalLineCount), InsertionPoint.Z),
+                Location = new Point3d(InsertionPoint.X + 15, InsertionPoint.Y + (VerticalScale * HorizontalLineCount), InsertionPoint.Z),
                 Attachment = AttachmentPoint.BottomCenter
             };
-            
+
 
             ProfileGridDBOjbects.Add(mText);
 
@@ -112,7 +120,7 @@ namespace Gxt.ElevationProfileDesigner
 
         public void PlaceGridElevationText()
         {
-            MText mText = new MText(){
+            MText mText = new MText() {
                 TextHeight = 2.5,
                 Location = new Point3d(InsertionPoint.X - 5, InsertionPoint.Y, InsertionPoint.Y),
                 Contents = "00"
@@ -122,18 +130,18 @@ namespace Gxt.ElevationProfileDesigner
             {
                 MText mt = (MText)mText.Clone();
                 mt.Contents = (i * 5).ToString();
-                mt.Location = new Point3d(mText.Location.X, mText.Location.Y + (GridOffset * i* 5), mText.Location.Z);
+                mt.Location = new Point3d(mText.Location.X, mText.Location.Y + (VerticalScale * i * 5), mText.Location.Z);
                 ProfileGridDBOjbects.Add(mt);
             }
 
             MText mTextEnd = (MText)mText.Clone();
             mTextEnd.Location = new Point3d(InsertionPoint.X + (GridLength + 5), InsertionPoint.Y, InsertionPoint.Z);
-           
+
             for (int i = 0; i <= HorizontalLineCount / 5; i++)
             {
                 MText mt = (MText)mTextEnd.Clone();
                 mt.Contents = (i * 5).ToString();
-                mt.Location = new Point3d(mTextEnd.Location.X, mTextEnd.Location.Y + (GridOffset * i * 5), mTextEnd.Location.Z);
+                mt.Location = new Point3d(mTextEnd.Location.X, mTextEnd.Location.Y + (VerticalScale * i * 5), mTextEnd.Location.Z);
                 ProfileGridDBOjbects.Add(mt);
             }
         }
