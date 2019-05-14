@@ -58,16 +58,16 @@ namespace Gxt
             {
                 Polyline polyline = (Polyline)trans.GetObject(per.ObjectId, OpenMode.ForRead);
                 GradeLine grade = new GradeLine(polyline);
+
+                // create a nod dictionary for the profile objects
+                Nod nod = new Nod();
+
                 foreach (ProfileObject po in grade.CrossingObjects())
                 {
-                    ed.WriteMessage(po.DistanceAtCrossing.ToString() + po.Layer, po.LineType);
+                    nod.WriteToNod(po);
+                    nod.ReadFromNod(po);
                 }
             }
-            //need to save this infor into xrecords....!!1
-            
-
-
-
         }
 
         // Asynchronous helper that checks whether a URL exists

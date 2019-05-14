@@ -100,8 +100,8 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Windows\UserControl1.xaml.cs">
-      <DependentUpon>UserControl1.xaml</DependentUpon>
+    <Compile Include="Windows\Modal.xaml.cs">
+      <DependentUpon>Modal.xaml</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -117,7 +117,7 @@
     <Resource Include="Resources\images\logoWHITE.png" />
   </ItemGroup>
   <ItemGroup>
-    <Page Include="Windows\UserControl1.xaml">
+    <Page Include="Windows\Modal.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -15,14 +15,8 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <Label Grid.Row="0" Margin="5,5,275,5">Project name:</Label>
-        <DataGrid Height="370" Margin="10,0,10,-329" Grid.Row="1" VerticalAlignment="Bottom" Grid.ColumnSpan="2">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Station" Width="100"/>
-                <DataGridTextColumn Header="Object" Width="250"/>
-                <DataGridTextColumn Header="Depth" Width="*"/>
-            </DataGrid.Columns>
-        </DataGrid>
-        <Button Content="Button" HorizontalAlignment="Left" Margin="120.5,401,0,-353" Grid.Row="1" VerticalAlignment="Top" Width="74" Background="#FF616587" Grid.Column="1"/>
+        <DataGrid x:Name="dataGrid" Height="370" Margin="10,0,10,-329" Grid.Row="1" VerticalAlignment="Bottom" Grid.ColumnSpan="2" Loaded="DataGrid_Loader"/>
+        <Button x:Name="button1" Content="Button" HorizontalAlignment="Left" Margin="120.5,401,0,-353" Grid.Row="1" VerticalAlignment="Top" Width="74" Background="#FF616587" Grid.Column="1"/>
         <Image Grid.Column="1" HorizontalAlignment="Left" Height="50" Margin="175,10,0,0" VerticalAlignment="Top" Width="50" Source="/Gxt;component/Resources/images/logoWHITE.png" Grid.RowSpan="2">
             <Image.OpacityMask>
                 <ImageBrush/>

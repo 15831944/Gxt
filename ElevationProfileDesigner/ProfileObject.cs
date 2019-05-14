@@ -11,6 +11,6 @@ namespace Gxt.ElevationProfileDesigner
         public double DistanceAtCrossing { get; set; }
         public string LineType { get; set; }
         public string Layer { get; set; }
-        public double Depth { get; set; }
+        public int Depth { get; set; }
     }
 }
