@@ -65,7 +65,7 @@ namespace Gxt
                 foreach (ProfileObject po in grade.CrossingObjects())
                 {
                     nod.WriteToNod(po);
-                    nod.ReadFromNod(po);
+                    //nod.ReadFromNod(po);
                 }
             }
         }
@@ -134,7 +134,7 @@ namespace Gxt
             var doc = Application.DocumentManager.MdiActiveDocument;
             var db = doc.Database;
             var ed = doc.Editor;
-            var dialog = new ModalDialog();
+            var dialog = new Modal();
             var result = Application.ShowModalWindow(dialog);
             //if (result.Value)
                 //Application.ShowAlertDialog("Hello " + dialog.UserName);

@@ -10,9 +10,9 @@ namespace Gxt.Windows
     /// <summary>
     /// Interaction logic for UserControl1.xaml
     /// </summary>
-    public partial class ModalDialog : Window
+    public partial class Modal : Window
     {
-        public ModalDialog()
+        public Modal()
         {
             InitializeComponent();
         }
@@ -29,15 +29,9 @@ namespace Gxt.Windows
             var items = new List<ProfileObject>();
             Nod nod = new Nod();
 
-            foreach (DBDictionaryEntry dbEntry in nod.AppDictionary)
-            {
-                Xrecord values = trans.
-                items.Add()
-            }
-
             // ... Assign ItemsSource of DataGrid.
             var grid = sender as DataGrid;
-            grid.ItemsSource = items;
+            grid.ItemsSource = nod.ReadFromNod();
         }
 
     }
