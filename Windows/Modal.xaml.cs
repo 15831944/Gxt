@@ -27,11 +27,10 @@ namespace Gxt.Windows
         {
             // ... Create a List of objects.
             var items = new List<ProfileObject>();
-            Nod nod = new Nod();
-
+            
             // ... Assign ItemsSource of DataGrid.
             var grid = sender as DataGrid;
-            grid.ItemsSource = nod.ReadFromNod();
+            grid.ItemsSource = Nod.ReadFromNod();
         }
 
     }

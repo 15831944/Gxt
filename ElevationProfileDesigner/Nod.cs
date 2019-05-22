@@ -12,12 +12,12 @@ namespace Gxt.ElevationProfileDesigner
     
     public class Nod
     {
-        public DBDictionary AppDictionary { get; set; }
-        public int Count { get; set; }
+        public static DBDictionary AppDictionary { get; set; }
+        public static int Count { get; set; }
 
         private  const string APPDICTIONARYNAME = "profileDesigner";
        
-        public Nod()
+        public static void CreateAppNod()
         {
             Editor ed = Application.DocumentManager.MdiActiveDocument.Editor;
             Transaction trans = Application.DocumentManager.MdiActiveDocument.Database.TransactionManager.StartTransaction();
@@ -58,7 +58,7 @@ namespace Gxt.ElevationProfileDesigner
         }
 
 
-        public void WriteToNod(ProfileObject obj)
+        public static void WriteToNod(ProfileObject obj)
         {
             Editor ed = Application.DocumentManager.MdiActiveDocument.Editor;
             Transaction trans = Application.DocumentManager.MdiActiveDocument.Database.TransactionManager.StartTransaction();
@@ -98,11 +98,11 @@ namespace Gxt.ElevationProfileDesigner
                 trans.Commit();
 
                 //increment object counter
-                this.Count++;
+                Count++;
             }
         }
 
-        public List<ProfileObject> ReadFromNod()
+        public static List<ProfileObject> ReadFromNod()
         {
             Editor ed = Application.DocumentManager.MdiActiveDocument.Editor;
             Transaction trans = Application.DocumentManager.MdiActiveDocument.Database.TransactionManager.StartTransaction();
