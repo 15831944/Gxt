@@ -16,7 +16,7 @@ namespace Gxt.ElevationProfileDesigner
         private int VerticalScale { get; set; }
         private int HorizontalLineCount { get; set; }
         public DBObjectCollection ProfileGridDBOjbects { get; set; }
-        public Point3d InsertionPoint { get; set; }
+        //public Point3d InsertionPoint { get; set; }
 
         Document doc = Application.DocumentManager.MdiActiveDocument;
 
@@ -30,9 +30,9 @@ namespace Gxt.ElevationProfileDesigner
             Init();
         }
 
-        public ProfileGrid(int length, int verticalScale)
-        {
-            GridLength = length + 30; //add 30 for buffer on the grid side 15 on each side
+        public ProfileGrid(double length, int verticalScale)
+        {         
+            GridLength = Convert.ToInt32(length) + 30; //add 30 for buffer on the grid side 15 on each side
             VerticalScale = verticalScale;
             HorizontalLineCount = 30; //todo
             ProfileGridDBOjbects = new DBObjectCollection();
@@ -44,15 +44,9 @@ namespace Gxt.ElevationProfileDesigner
             Line line;
             Editor ed = doc.Editor;
 
-            PromptPointOptions ppo = new PromptPointOptions("\nSelect profile insertion point: ");
-            PromptPointResult ppr = ed.GetPoint(ppo);
+            
 
-            if (ppr.Status != PromptStatus.OK)
-            {
-                return;
-            }
-
-            InsertionPoint = ppr.Value;
+            //InsertionPoint = ppr.Value;
 
             if (this.GridLength == 0)
             {
@@ -174,6 +168,27 @@ namespace Gxt.ElevationProfileDesigner
 
             }
             return formattedStation;
+        }
+
+        public void SaveGrid()
+        {
+            Database db = Application.DocumentManager.MdiActiveDocument.Database;
+
+            Transaction trans = db.TransactionManager.StartTransaction();
+
+            using (trans)
+            {
+                BlockTable bt = trans.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
+                BlockTableRecord btr = trans.GetObject(bt[BlockTableRecord.ModelSpace], OpenMode.ForWrite) as BlockTableRecord;
+
+                foreach (Entity obj in this.ProfileGridDBOjbects)
+                {
+                    btr.AppendEntity(obj);
+                    trans.AddNewlyCreatedDBObject(obj, true);
+                }
+
+                trans.Commit();
+            }
         }
     }
 }

@@ -90,18 +90,18 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Commands.cs" />
-    <Compile Include="ElevationProfileDesigner\GradeLine.cs" />
+    <Compile Include="ElevationProfileDesigner\Grade.cs" />
     <Compile Include="ElevationProfileDesigner\Nod.cs" />
     <Compile Include="ElevationProfileDesigner\ProfileGrid.cs" />
     <Compile Include="ElevationProfileDesigner\ProfileObject.cs" />
+    <Compile Include="Forms\ProfileData.xaml.cs">
+      <DependentUpon>ProfileData.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-    <Compile Include="Windows\Modal.xaml.cs">
-      <DependentUpon>Modal.xaml</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -117,7 +117,7 @@
     <Resource Include="Resources\images\logoWHITE.png" />
   </ItemGroup>
   <ItemGroup>
-    <Page Include="Windows\Modal.xaml">
+    <Page Include="Forms\ProfileData.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

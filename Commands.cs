@@ -11,62 +11,51 @@ using Autodesk.AutoCAD.Windows;
 using Gxt.ElevationProfileDesigner;
 using System.Net;
 using System.Xml.Linq;
-using Gxt.Windows;
+using Gxt.Forms;
+
 
 namespace Gxt
 {
     public class Commands
     {
         private const string APPDICTIONARYNAME = "profileDesigner";
-
         Document doc = Application.DocumentManager.MdiActiveDocument;
-        Database database = Application.DocumentManager.MdiActiveDocument.Database;
+        Database db = Application.DocumentManager.MdiActiveDocument.Database;
 
         [CommandMethod("gd")]
-        public void GRID()
+        public void ProfileGrid()
         {
-            ProfileGrid profileGrid = new ProfileGrid();
+            
+			PromptPointOptions ppo = new PromptPointOptions("\nSelect profile insertion point: ");
+			PromptPointResult ppr = doc.Editor.GetPoint(ppo);
 
-            Transaction trans = database.TransactionManager.StartTransaction();
+			if (ppr.Status != PromptStatus.OK)
+			{
+				return;
+			}
 
-            using (trans)
+			ProfileGrid profileGrid = null;
+			try
             {
-                BlockTable bt = trans.GetObject(database.BlockTableId, OpenMode.ForRead) as BlockTable;
-                BlockTableRecord btr = trans.GetObject(bt[BlockTableRecord.ModelSpace], OpenMode.ForWrite) as BlockTableRecord;
+                profileGrid = new ProfileGrid();
+            }
+            catch (Autodesk.AutoCAD.Runtime.Exception ex)
+            {
+                doc.Editor.WriteMessage("error creating grid");
+            }
 
-                foreach (Entity obj in profileGrid.ProfileGridDBOjbects)
-                {
-                    btr.AppendEntity(obj);
-                    trans.AddNewlyCreatedDBObject(obj, true);
-                }
-
-                trans.Commit();
+            if (profileGrid != null)
+            {
+                profileGrid.SaveGrid();
             }
         }
 
         [CommandMethod("gl")]
         public void GradeLine()
         {
-            Editor ed = doc.Editor;
-
-            PromptEntityOptions peo = new PromptEntityOptions("Select Running Line: ");
-
-            PromptEntityResult per = ed.GetEntity(peo);
-            if (per.Status != PromptStatus.OK)
-                return;
-
-            Transaction trans = database.TransactionManager.StartTransaction();
-            using (trans)
-            {
-                Polyline polyline = (Polyline)trans.GetObject(per.ObjectId, OpenMode.ForRead);
-                GradeLine grade = new GradeLine(polyline);
-
-                foreach (ProfileObject po in grade.CrossingObjects())
-                {
-                    WriteToNod(po);
-                    //nod.ReadFromNod(po);
-                }
-            }
+               
+            Grade grade = new Grade();
+            //grade.Draw();
         }
 
         // Asynchronous helper that checks whether a URL exists
@@ -128,16 +117,203 @@ namespace Gxt
         }
 
         [CommandMethod("EPD")]
-        public static void EPD()
+        public void EPD()
         {
-            var doc = Application.DocumentManager.MdiActiveDocument;
-            var db = doc.Database;
             var ed = doc.Editor;
-            var dialog = new Modal();
-            var result = Application.ShowModalWindow(dialog);
-            //if (result.Value)
-                //Application.ShowAlertDialog("Hello " + dialog.UserName);
+            //var trans = db.TransactionManager.StartTransaction();
+
+            //create the nod dictionary 
+            if (CreateAppNod() == true )
+            {
+				ProfileGrid profileGrid = null;
+				Grade gradeLine = null;
+
+				try
+				{
+					profileGrid = new ProfileGrid();
+					gradeLine = new Grade();
+					gradeLine.DrawGradeLine(profileGrid.InsertionPoint);
+				}
+
+				catch(Autodesk.AutoCAD.Runtime.Exception e)
+				{
+					ed.WriteMessage("EPD Error: " + e.Message);
+				}
+
+				profileGrid.SaveGrid();
+			}
         }
+
+        public bool CreateAppNod()
+        {
+            var ed = doc.Editor;
+            var trans = db.TransactionManager.StartTransaction();
+            DBDictionary appDictionary;
+            
+            //check for appnode existance
+            using(trans)
+            {
+                try 
+                {
+                    DBDictionary nod = (DBDictionary)trans.GetObject(db.NamedObjectsDictionaryId,
+                                                                        OpenMode.ForRead);
+
+                    //try to add new dictonary to the NOD if it fails then create a new one
+                    try
+                    {
+                        ObjectId appDictionaryId = nod.GetAt(APPDICTIONARYNAME);
+                        //if we are here no error so dictionary already exist
+                        ed.WriteMessage(APPDICTIONARYNAME + " Already exists opening EPD Modal... ");
+                        return false;
+                    }
+                    catch 
+                    {
+                        nod.UpgradeOpen(); 
+
+                        appDictionary = new DBDictionary();
+                        //insert new app dictionary into NOD
+                        nod.SetAt(APPDICTIONARYNAME, appDictionary);
+                        //since we have new object
+                        trans.AddNewlyCreatedDBObject(appDictionary, true);
+                        trans.Commit();
+                    }
+                }
+                catch (Autodesk.AutoCAD.Runtime.Exception e)
+                {
+                    ed.WriteMessage("Error loading nod!!: " + e.Message);
+                    return false;
+                }
+            } 
+            return true;
+        }
+
+        public static void WriteToNod(ProfileObject obj)
+        {
+            Document doc = Application.DocumentManager.MdiActiveDocument;
+            Database db = doc.Database;
+            Editor ed = doc.Editor;
+            Transaction trans = doc.TransactionManager.StartTransaction();
+            DBDictionary dBDictionary;
+
+            using (trans)
+            {
+                DBDictionary nod = (DBDictionary)trans.GetObject(db.NamedObjectsDictionaryId,
+                                                                        OpenMode.ForRead);
+
+                //try to add new dictonary to the NOD if it fails then create a new one
+                try
+                {
+                    ObjectId appDictionaryId = nod.GetAt(APPDICTIONARYNAME);
+                    //if we are here no error so dictionary already exist
+                    dBDictionary = (DBDictionary)trans.GetObject(appDictionaryId, OpenMode.ForRead);
+                }
+                catch
+                {
+                    ed.WriteMessage(APPDICTIONARYNAME + " App Dictionary does not exist ");
+                    return;
+                }
+
+                if (!dBDictionary.IsWriteEnabled)
+                    dBDictionary.UpgradeOpen();
+
+                //create new Xrecord
+                Xrecord xrecord = new Xrecord();
+                //create the resbuf list
+                ResultBuffer data = new ResultBuffer(new TypedValue((int)DxfCode.Text, obj.NodKey),
+                                                        new TypedValue((int)DxfCode.Int64, obj.DistanceAtCrossing),
+                                                        new TypedValue((int)DxfCode.Text, obj.Layer),
+                                                        new TypedValue((int)DxfCode.Text, obj.LineType),
+                                                        new TypedValue((int)DxfCode.Int32, obj.Depth));
+                //add data to new record
+                xrecord.Data = data;
+
+                //create the entry to nod
+                dBDictionary.SetAt(obj.NodKey, xrecord);
+
+                try
+                {
+                    //add to transaction, if exist then handle in catch
+                    trans.AddNewlyCreatedDBObject(xrecord, true);
+
+                }
+                catch
+                {
+                    //what todo when xrecord already exists
+                }
+
+                //all ok then commit
+                trans.Commit();
+
+            }
+        }
+
+        public static List<ProfileObject> ReadFromNod()
+        {
+            Document doc = Application.DocumentManager.MdiActiveDocument;
+            Database db = doc.Database;
+            Editor ed = doc.Editor;
+            Transaction trans = doc.TransactionManager.StartTransaction();
+            DBDictionary dBDictionary;
+
+            List<ProfileObject> profileObjects = new List<ProfileObject>();
+        
+            using (trans)
+            {
+                try
+                {
+                    DBDictionary nod = (DBDictionary)trans.GetObject(db.NamedObjectsDictionaryId,
+                                                                        OpenMode.ForRead);
+
+                    ////try to add new dictonary to the NOD if it fails then create a new one
+                    //try
+                    //{
+                    //    ObjectId appDictionaryId = nod.GetAt(APPDICTIONARYNAME);
+                    //    //if we are here no error so dictionary already exist
+                    //    dBDictionary = (DBDictionary)trans.GetObject(appDictionaryId, OpenMode.ForRead);
+                    //}
+                    //catch
+                    //{
+                    //    ed.WriteMessage(APPDICTIONARYNAME + " AppDic does not exist ");
+                    //    return null;
+                    //}
+
+                    foreach (DBDictionaryEntry entry in nod)
+                    {
+                        // check to see if our entry is in there, excpetion will be thrown if not so process that
+                        // condition in the catch
+                        ObjectId entryId = entry.m_value;
+                        //create xrecord
+                        Xrecord xrecord = default(Xrecord);
+
+                        //read it from the AppDirectory
+                        xrecord = (Xrecord)trans.GetObject(entryId, OpenMode.ForRead);
+
+                        //get the data from xrecord
+                        ResultBuffer resbuf = xrecord.Data;
+                        TypedValue[] resbufvalue = resbuf.AsArray();
+
+                        profileObjects.Add(new ProfileObject(){
+                            NodKey = (string)resbufvalue[0].Value,
+                            DistanceAtCrossing = (double)resbufvalue[1].Value,
+                            LineType = (string)resbufvalue[2].Value,
+                            Layer = (string)resbufvalue[3].Value,
+                            Depth = (int)resbufvalue[4].Value
+                        });
+
+                        ed.WriteMessage(string.Format("\n{0}, {1}, {2}, {3}, {4}", resbufvalue[0].Value, resbufvalue[1].Value, resbufvalue[2].Value, resbufvalue[3].Value, resbufvalue[4].Value));
+                    }
+                        
+                }
+                catch
+                {
+                    ed.WriteMessage("Error trying to open NOD.");
+                }
+            }
+
+            return profileObjects;
+        }
+
+
 
 
         [CommandMethod("TV")]
@@ -151,6 +327,8 @@ namespace Gxt
         {
             Application.DocumentWindowCollection.TileHorizontally();
         }
+
+    
 
         
         //public static void CreateAppNod()
